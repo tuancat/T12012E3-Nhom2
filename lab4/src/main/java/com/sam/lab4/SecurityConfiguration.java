@@ -1,7 +1,5 @@
 package com.sam.lab4;
 
-import com.sam.lab4.service.CustomeUserDetailService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +16,8 @@ import org.springframework.security.web.authentication.rememberme.PersistentToke
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     PersistentTokenRepository tokenRepository=new InMemoryTokenRepositoryImpl();
-    @Qualifier("customUserDetailService")
-    private CustomeUserDetailService customeUserDetailService;
+//    @Qualifier("customUserDetailService")
+//    private CustomeUserDetailService customeUserDetailService;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -27,18 +25,25 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return bCryptPasswordEncoder;
     }
 
-    public void configureGlobalSecurity(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(customeUserDetailService).passwordEncoder(passwordEncoder());
+//    public void configureGlobalSecurity(AuthenticationManagerBuilder auth) throws Exception {
+////        auth.userDetailsService(customeUserDetailService).passwordEncoder(passwordEncoder());
+//        auth.authenticationProvider(authenticationProvider());
+//    }
+
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.inMemoryAuthentication().withUser("user1")
+                .password("$2a$10$t91y6AKiCADSeED6JlFGveBNaClYhDj.bCxAKjzoRPK1HkYp9ejgy").roles("USER");
+        auth.inMemoryAuthentication().withUser("admin")
+                .password("admin").roles("ADMIN");
     }
-
-
-
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         // Các trang không yêu cầu login
-        http.authorizeRequests().antMatchers("/","/login","/user/login", "/user/logout", "/logout", "/mail/**").permitAll();
-        http.authorizeRequests().antMatchers("/product/**", "/user/**").access("hasAnyRole('ROLE_USER', 'ROLE_ADMIN', 'ROLE_STUDENT')");
+        http.authorizeRequests().antMatchers("/","/login","/user/login", "/user/logout", "/logout").permitAll();
+        http.authorizeRequests().antMatchers("/product/**", "/user/**").access("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')");
         http.authorizeRequests().antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')");
 
         // Cấu hình cho Login Form.
